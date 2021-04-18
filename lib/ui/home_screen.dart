@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'vote_screen.dart';
 
 class HomeSceen extends StatefulWidget {
   HomeSceen({Key key}) : super(key: key);
@@ -10,6 +12,9 @@ class HomeSceen extends StatefulWidget {
 class _HomeSceen extends State<HomeSceen> {
   @override
   Widget build(BuildContext context) {
+    CollectionReference _voteList =
+        FirebaseFirestore.instance.collection('list');
+
     return Material(
         child: SafeArea(
       child: Column(children: <Widget>[
@@ -29,29 +34,50 @@ class _HomeSceen extends State<HomeSceen> {
           ),
         ),
         Expanded(
-          child: ListView.builder(
-            itemCount: 100,
-            itemBuilder: (context, index) {
-              return Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Column(
-                    children: <Widget>[
-                      Text(
-                        "Test ${index + 1}",
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold),
+          child: StreamBuilder<QuerySnapshot>(
+            stream: _voteList.snapshots(),
+            builder:
+                (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+              if (snapshot.hasError) {
+                return Text('Something went wrong');
+              }
+
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Text("Loading");
+              }
+              return new ListView(
+                children: snapshot.data.docs.map((DocumentSnapshot document) {
+                  return new GestureDetector(
+                    child: new Card(
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          children: <Widget>[
+                            Text(
+                              document['title'],
+                              style: TextStyle(
+                                  fontSize: 16, fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 10),
+                            Text(document['description'])
+                          ],
+                        ),
                       ),
-                      SizedBox(height: 10),
-                      Text(
-                          "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book")
-                    ],
-                  ),
-                ),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => VoteScreen(idKey: document.id),
+                        ),
+                      );
+                    },
+                  );
+                }).toList(),
               );
             },
           ),
-        )
+        ),
       ]),
     ));
   }

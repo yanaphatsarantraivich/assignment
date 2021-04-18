@@ -16,7 +16,7 @@ class _RegisterState extends State<Register> {
   TextEditingController _citizenId = TextEditingController();
   TextEditingController _emailField = TextEditingController();
   TextEditingController _passwordField = TextEditingController();
-  String _errorDisplay;
+
   String _errorEmail;
   String _errorPassword;
 
@@ -39,15 +39,6 @@ class _RegisterState extends State<Register> {
               child: TextFormField(
                 style: TextStyle(color: Colors.white),
                 controller: _citizenId,
-                onTap: () {
-                  setState(() => _errorDisplay = null);
-                },
-                validator: (value) {
-                  if (value.isEmpty) {
-                    setState(() => _errorDisplay = 'Please enter display name');
-                  }
-                  return null;
-                },
                 decoration: InputDecoration(
                   hintStyle: TextStyle(
                     color: Colors.white,
