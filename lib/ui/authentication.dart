@@ -1,8 +1,8 @@
 import 'package:assignment/net/flutterfire.dart';
 import 'package:flutter/material.dart';
 
-import 'home_view.dart';
-import 'screen_register.dart';
+import 'home.dart';
+import 'register_screen.dart';
 
 class Authentication extends StatefulWidget {
   Authentication({Key key}) : super(key: key);

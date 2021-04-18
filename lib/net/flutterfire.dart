@@ -12,20 +12,18 @@ Future<bool> signIn(String email, String password) async {
   }
 }
 
-Future<bool> register(String email, String password) async {
+Future register(
+  String email,
+  String password,
+  String citizenId,
+) async {
   try {
-    await FirebaseAuth.instance
+    var credential = await FirebaseAuth.instance
         .createUserWithEmailAndPassword(email: email, password: password);
-    return true;
+    await credential.user.updateProfile(displayName: citizenId);
+    return 'success';
   } on FirebaseAuthException catch (e) {
-    if (e.code == 'weak-password') {
-      print('The password provided is too weak.');
-    } else if (e.code == 'email-already-in-use') {
-      print('The account already exists for that email.');
-    } else {
-      print(e);
-    }
-    return false;
+    return e.code;
   } catch (e) {
     print(e.toString());
     return false;

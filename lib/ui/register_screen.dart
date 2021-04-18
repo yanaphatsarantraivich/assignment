@@ -1,9 +1,8 @@
 import 'package:assignment/net/flutterfire.dart';
 import 'package:flutter/material.dart';
 import 'authentication.dart';
-import 'package:nextflow_thai_personal_id/nextflow_thai_personal_id.dart';
 
-import 'home_view.dart';
+import 'home.dart';
 
 class Register extends StatefulWidget {
   Register({Key key}) : super(key: key);
@@ -14,12 +13,12 @@ class Register extends StatefulWidget {
 
 class _RegisterState extends State<Register> {
   final _formKey = GlobalKey<FormState>();
-  TextEditingController _idField = TextEditingController();
+  TextEditingController _citizenId = TextEditingController();
   TextEditingController _emailField = TextEditingController();
   TextEditingController _passwordField = TextEditingController();
-
-  ThaiIdValidator validator =
-      ThaiIdValidator(errorMessage: 'Incorrect, Please check again');
+  String _errorDisplay;
+  String _errorEmail;
+  String _errorPassword;
 
   @override
   Widget build(BuildContext context) {
@@ -39,13 +38,21 @@ class _RegisterState extends State<Register> {
               width: MediaQuery.of(context).size.width / 1.3,
               child: TextFormField(
                 style: TextStyle(color: Colors.white),
-                controller: _idField,
-                //validator: validator.validate,
+                controller: _citizenId,
+                onTap: () {
+                  setState(() => _errorDisplay = null);
+                },
+                validator: (value) {
+                  if (value.isEmpty) {
+                    setState(() => _errorDisplay = 'Please enter display name');
+                  }
+                  return null;
+                },
                 decoration: InputDecoration(
                   hintStyle: TextStyle(
                     color: Colors.white,
                   ),
-                  labelText: "Identification",
+                  labelText: "Citizen ID",
                   labelStyle: TextStyle(
                     color: Colors.white,
                   ),
@@ -56,15 +63,19 @@ class _RegisterState extends State<Register> {
             Container(
               width: MediaQuery.of(context).size.width / 1.3,
               child: TextFormField(
-                style: TextStyle(color: Colors.white),
                 controller: _emailField,
+                onTap: () {
+                  setState(() => _errorEmail = null);
+                },
                 validator: (value) {
                   if (value.isEmpty) {
-                    return 'Please enter Email';
+                    setState(() => _errorEmail = 'Please enter Email');
                   }
                   return null;
                 },
                 decoration: InputDecoration(
+                  errorText: _errorEmail,
+                  errorStyle: TextStyle(color: Colors.red, fontSize: 14.0),
                   hintStyle: TextStyle(
                     color: Colors.white,
                   ),
@@ -73,6 +84,7 @@ class _RegisterState extends State<Register> {
                     color: Colors.white,
                   ),
                 ),
+                style: TextStyle(color: Colors.white),
               ),
             ),
             SizedBox(height: MediaQuery.of(context).size.height / 35),
@@ -81,14 +93,19 @@ class _RegisterState extends State<Register> {
               child: TextFormField(
                 style: TextStyle(color: Colors.white),
                 controller: _passwordField,
+                onTap: () {
+                  setState(() => _errorPassword = null);
+                },
                 obscureText: true,
                 validator: (value) {
                   if (value.isEmpty) {
-                    return 'Please enter Password';
+                    setState(() => _errorPassword = 'Please enter Password');
                   }
                   return null;
                 },
                 decoration: InputDecoration(
+                  errorText: _errorPassword,
+                  errorStyle: TextStyle(color: Colors.red, fontSize: 14.0),
                   hintStyle: TextStyle(
                     color: Colors.white,
                   ),
@@ -110,16 +127,26 @@ class _RegisterState extends State<Register> {
               child: MaterialButton(
                   onPressed: () async {
                     if (_formKey.currentState.validate()) {
-                      bool shouldNavigate =
-                      await register(_emailField.text, _passwordField.text);
-                  if (shouldNavigate) {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => HomeView(),
-                      ),
-                    );
-                  }
+                      String shouldNavigate = await register(_emailField.text,
+                          _passwordField.text, _citizenId.text);
+                      if (shouldNavigate == 'success') {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => HomeView(),
+                          ),
+                        );
+                      } else {
+                        setState(() {
+                          if (shouldNavigate == 'weak-password') {
+                            _errorPassword =
+                                "The password provided is too weak.";
+                          } else if (shouldNavigate == 'email-already-in-use') {
+                            _errorEmail = "Emailid already exist.";
+                          }
+                          return;
+                        });
+                      }
                     }
                   },
                   child: Text("Register")),
@@ -135,7 +162,7 @@ class _RegisterState extends State<Register> {
                   ),
                 );
               },
-            )
+            ),
           ],
         ),
       ),
